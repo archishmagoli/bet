@@ -1,1 +1,1 @@
-# CollegeCompass
+# Bet
