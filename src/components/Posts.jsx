@@ -13,6 +13,7 @@ const Posts = () => {
             .order('created_at', { ascending: true });
 
             setPosts(postData.data);
+
         } catch (error) {
             console.log('error', error);
         }
@@ -20,20 +21,58 @@ const Posts = () => {
 
     useEffect(() => {
         fetchPosts();
-    })
+    }, []);
+
+    const addBet = (e) => {
+        e.preventDefault();
+        const postId = e.target.id;
+
+        updateBetCount(postId);
+    }
+
+    const updateBetCount = async (postId) => {
+        try {
+            const betCount = (await supabase
+            .from('Posts')
+            .select('betCount')
+            .eq('id', postId)).data[0].betCount;
+
+            try {
+                const { updateData, updateError } = await supabase
+                .from('Posts')
+                .update({ betCount: betCount + 1 })
+                .eq('id', postId);
+
+                if (updateError) {
+                    throw updateError;
+                }
+
+            } catch (error) {
+                console.error(error);
+                alert('Error updating bet count.');
+            }
+
+            fetchPosts();
+
+        } catch (error) {
+            alert('Error fetching bet count.');
+            console.error(error);
+        }
+    }
 
     return (
         <>
-            <div>
+            <div className='post-gallery'>
                 {
                     posts !== null ? 
                     posts.map((post, index) => (
                         <div key={index} className='post'>
                             <h2>{post.title}</h2>
-                            <i><b>Created: </b>{new Date(post.created_at).toString()}</i>
+                            <h3>by {post.author}</h3>
+                            <p><i><b>Created: </b>{new Date(post.created_at).toString()}</i></p>
                             <p>{post.description}</p>
                             <p>{post.betCount} Bets</p>
-                            <button className='bet-button'>Bet 👍</button>
+                            <button id={post.id} className='bet-button' onClick={addBet}>Bet 👍</button>
                         </div>
                     )) : 'Loading...'
                 }
